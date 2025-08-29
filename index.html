@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Boiling Point Calculator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Bootstrap 5 CDN -->
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    />
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card {
+            border: none;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .form-label {
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .form-control,
+        .form-select {
+            font-size: 14px;
+        }
+
+        .dropdown-radio label {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 6px;
+            cursor: pointer;
+        }
+
+        .dropdown-radio {
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 0.5rem;
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container px-3">
+        <div class="card p-4 mx-auto" style="max-width: 500px;">
+            <h4 class="text-center mb-4">Boiling Point Calculator</h4>
+
+            <form id="calcForm" onsubmit="return false;">
+                <div class="mb-3">
+                    <label for="P1" class="form-label">Initial Pressure P₁ (Torr)</label>
+                    <input
+                        type="number"
+                        step="any"
+                        id="P1"
+                        class="form-control"
+                        value="760"
+                        required
+                    />
+                </div>
+
+                <div class="mb-3">
+                    <label for="T1" class="form-label">Initial Boiling Point T₁ (°C)</label>
+                    <input
+                        type="number"
+                        step="any"
+                        id="T1"
+                        class="form-control"
+                        value="100"
+                        required
+                    />
+                </div>
+
+                <div class="mb-3">
+                    <label for="P2" class="form-label">Final Pressure P₂ (Torr)</label>
+                    <input
+                        type="number"
+                        step="any"
+                        id="P2"
+                        class="form-control"
+                        placeholder="Enter P₂ or leave blank"
+                    />
+                </div>
+
+                <div class="mb-3">
+                    <label for="T2" class="form-label">Final Boiling Point T₂ (°C)</label>
+                    <input
+                        type="number"
+                        step="any"
+                        id="T2"
+                        class="form-control"
+                        placeholder="Enter T₂ or leave blank"
+                    />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Select a Heat Group:</label>
+                    <button
+                        type="button"
+                        class="btn btn-outline-secondary w-100 mb-2"
+                        onclick="toggleDropdown()"
+                    >
+                        Select Heat Group
+                    </button>
+                    <div id="heat-options" class="dropdown-radio d-none">
+                        <label><input type="radio" name="heat" value="25" /> ether, hexanes, carbon disulfide, methylene chloride</label>
+                        <label><input type="radio" name="heat" value="30" /> acetone, benzene, acetonitrile, bromine, chloroform</label>
+                        <label><input type="radio" name="heat" value="37" /> dioxane, methanol, ethanol, nitric acid, pyridine</label>
+                        <label><input type="radio" name="heat" value="43" /> water, butanoles, aniline, toluene, DMF</label>
+                        <label><input type="radio" name="heat" value="55" /> DMSO, nitrobenzene, sulfuric acid</label>
+                        <label><input type="radio" name="heat" value="60" /> mercury, formamide, glycol</label>
+                        <label><input type="radio" name="heat" value="70" /> high molecular/boiling compounds</label>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="Hvap" class="form-label"
+                        >ΔHvap (Heat of Vaporization in kJ/mol)</label
+                    >
+                    <input
+                        type="number"
+                        step="any"
+                        id="Hvap"
+                        class="form-control"
+                        value="43"
+                        required
+                    />
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and dropdown logic -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function toggleDropdown() {
+            const dropdown = document.getElementById('heat-options');
+            dropdown.classList.toggle('d-none');
+        }
+
+        // Auto-fill Hvap and close dropdown on radio selection
+        document.querySelectorAll('input[name="heat"]').forEach((radio) => {
+            radio.addEventListener('change', function () {
+                document.getElementById('Hvap').value = this.value;
+                document.getElementById('heat-options').classList.add('d-none');
+                updateValues();
+            });
+        });
+
+        // Constants
+        const R = 8.314;
+
+        // Helper functions
+        function celsiusToKelvin(c) {
+            return c + 273.15;
+        }
+        function kelvinToCelsius(k) {
+            return k - 273.15;
+        }
+
+        function calculateT2(P1, T1, P2, Hvap) {
+            const ln_P2_P1 = Math.log(P2 / P1);
+            const inv_T2 = 1 / T1 - (R * ln_P2_P1) / Hvap;
+            return 1 / inv_T2;
+        }
+
+        function calculateP2(P1, T1, T2, Hvap) {
+            const inv_T2 = 1 / T2;
+            const ln_P2_P1 = (1 / T1 - inv_T2) * Hvap / R;
+            return P1 * Math.exp(ln_P2_P1);
+        }
+
+        // Elements
+        const P1Input = document.getElementById('P1');
+        const T1Input = document.getElementById('T1');
+        const P2Input = document.getElementById('P2');
+        const T2Input = document.getElementById('T2');
+        const HvapInput = document.getElementById('Hvap');
+
+        let lastChanged = null;
+
+        function updateValues() {
+            const P1 = parseFloat(P1Input.value);
+            const T1_c = parseFloat(T1Input.value);
+            const Hvap_kJ = parseFloat(HvapInput.value);
+            if (isNaN(P1) || isNaN(T1_c) || isNaN(Hvap_kJ)) return;
+
+            const Hvap = Hvap_kJ * 1000;
+            const T1 = celsiusToKelvin(T1_c);
+
+            if (lastChanged === 'P2') {
+                const P2 = parseFloat(P2Input.value);
+                if (isNaN(P2) || P2 <= 0) {
+                    T2Input.value = '';
+                    return;
+                }
+                const T2 = calculateT2(P1, T1, P2, Hvap);
+                // T2Input.value = kelvinToCelsius(T2).toFixed(2);
+                T2Input.value = Math.ceil(kelvinToCelsius(T2));
+            } else if (lastChanged === 'T2') {
+                const T2_c = parseFloat(T2Input.value);
+                if (isNaN(T2_c)) {
+                    P2Input.value = '';
+                    return;
+                }
+                const T2 = celsiusToKelvin(T2_c);
+                const P2 = calculateP2(P1, T1, T2, Hvap);
+                // P2Input.value = P2.toFixed(2);
+                P2Input.value =  Math.round(P2.toFixed(2));
+            }
+        }
+
+        P2Input.addEventListener('input', () => {
+            lastChanged = 'P2';
+            updateValues();
+        });
+
+        T2Input.addEventListener('input', () => {
+            lastChanged = 'T2';
+            updateValues();
+        });
+
+        // Recalculate if initial values or Hvap change, keep lastChanged intact
+        [P1Input, T1Input, HvapInput].forEach((input) =>
+            input.addEventListener('input', () => {
+                updateValues();
+            })
+        );
+
+        // Initialize with default values
+        lastChanged = 'P2';
+        updateValues();
+    </script>
+</body>
+</html>
