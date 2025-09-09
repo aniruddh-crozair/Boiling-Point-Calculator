@@ -15,9 +15,6 @@
             font-family: 'Inter', sans-serif;
             background-color: #f8fafc;
             min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
 
         .card {
@@ -50,69 +47,49 @@
             border-radius: 0.375rem;
             background-color: #f8f9fa;
         }
+
+        /* Center the card below navbar */
+        .calculator-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: calc(100vh - 56px); /* Adjust for navbar height */
+            padding: 2rem 0;
+        }
     </style>
 </head>
 <body>
-    <div class="container px-3">
+    <div id="navbar-placeholder"></div>
+
+    <!-- Calculator Card -->
+    <div class="calculator-container">
         <div class="card p-4 mx-auto" style="max-width: 500px;">
             <h4 class="text-center mb-4">Boiling Point Calculator</h4>
 
             <form id="calcForm" onsubmit="return false;">
                 <div class="mb-3">
                     <label for="P1" class="form-label">Initial Pressure P₁ (Torr)</label>
-                    <input
-                        type="number"
-                        step="any"
-                        id="P1"
-                        class="form-control"
-                        value="760"
-                        required
-                    />
+                    <input type="number" step="any" id="P1" class="form-control" value="760" required />
                 </div>
 
                 <div class="mb-3">
                     <label for="T1" class="form-label">Initial Boiling Point T₁ (°C)</label>
-                    <input
-                        type="number"
-                        step="any"
-                        id="T1"
-                        class="form-control"
-                        value="100"
-                        required
-                    />
+                    <input type="number" step="any" id="T1" class="form-control" value="100" required />
                 </div>
 
                 <div class="mb-3">
                     <label for="P2" class="form-label">Final Pressure P₂ (Torr)</label>
-                    <input
-                        type="number"
-                        step="any"
-                        id="P2"
-                        class="form-control"
-                        placeholder="Enter P₂ or leave blank"
-                    />
+                    <input type="number" step="any" id="P2" class="form-control" placeholder="Enter P₂ or leave blank" />
                 </div>
 
                 <div class="mb-3">
                     <label for="T2" class="form-label">Final Boiling Point T₂ (°C)</label>
-                    <input
-                        type="number"
-                        step="any"
-                        id="T2"
-                        class="form-control"
-                        placeholder="Enter T₂ or leave blank"
-                    />
+                    <input type="number" step="any" id="T2" class="form-control" placeholder="Enter T₂ or leave blank" />
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label">Select a Heat Group:</label>
-                    <button
-                        type="button"
-                        class="btn btn-outline-secondary w-100 mb-2"
-                        onclick="toggleDropdown()"
-                    >
-                        Select Heat Group
-                    </button>
+                    <button type="button" class="btn btn-outline-secondary w-100 mb-2" onclick="toggleDropdown()">Select Heat Group</button>
                     <div id="heat-options" class="dropdown-radio d-none">
                         <label><input type="radio" name="heat" value="25" /> ether, hexanes, carbon disulfide, methylene chloride</label>
                         <label><input type="radio" name="heat" value="30" /> acetone, benzene, acetonitrile, bromine, chloroform</label>
@@ -125,23 +102,14 @@
                 </div>
 
                 <div class="mb-3">
-                    <label for="Hvap" class="form-label"
-                        >ΔHvap (Heat of Vaporization in kJ/mol)</label
-                    >
-                    <input
-                        type="number"
-                        step="any"
-                        id="Hvap"
-                        class="form-control"
-                        value="43"
-                        required
-                    />
+                    <label for="Hvap" class="form-label">ΔHvap (Heat of Vaporization in kJ/mol)</label>
+                    <input type="number" step="any" id="Hvap" class="form-control" value="43" required />
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Bootstrap JS and dropdown logic -->
+    <!-- Bootstrap JS and custom logic -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         function toggleDropdown() {
@@ -149,7 +117,6 @@
             dropdown.classList.toggle('d-none');
         }
 
-        // Auto-fill Hvap and close dropdown on radio selection
         document.querySelectorAll('input[name="heat"]').forEach((radio) => {
             radio.addEventListener('change', function () {
                 document.getElementById('Hvap').value = this.value;
@@ -158,16 +125,10 @@
             });
         });
 
-        // Constants
         const R = 8.314;
 
-        // Helper functions
-        function celsiusToKelvin(c) {
-            return c + 273.15;
-        }
-        function kelvinToCelsius(k) {
-            return k - 273.15;
-        }
+        function celsiusToKelvin(c) { return c + 273.15; }
+        function kelvinToCelsius(k) { return k - 273.15; }
 
         function calculateT2(P1, T1, P2, Hvap) {
             const ln_P2_P1 = Math.log(P2 / P1);
@@ -181,7 +142,6 @@
             return P1 * Math.exp(ln_P2_P1);
         }
 
-        // Elements
         const P1Input = document.getElementById('P1');
         const T1Input = document.getElementById('T1');
         const P2Input = document.getElementById('P2');
@@ -201,46 +161,33 @@
 
             if (lastChanged === 'P2') {
                 const P2 = parseFloat(P2Input.value);
-                if (isNaN(P2) || P2 <= 0) {
-                    T2Input.value = '';
-                    return;
-                }
+                if (isNaN(P2) || P2 <= 0) { T2Input.value = ''; return; }
                 const T2 = calculateT2(P1, T1, P2, Hvap);
-                // T2Input.value = kelvinToCelsius(T2).toFixed(2);
                 T2Input.value = Math.ceil(kelvinToCelsius(T2));
             } else if (lastChanged === 'T2') {
                 const T2_c = parseFloat(T2Input.value);
-                if (isNaN(T2_c)) {
-                    P2Input.value = '';
-                    return;
-                }
+                if (isNaN(T2_c)) { P2Input.value = ''; return; }
                 const T2 = celsiusToKelvin(T2_c);
                 const P2 = calculateP2(P1, T1, T2, Hvap);
-                // P2Input.value = P2.toFixed(2);
-                P2Input.value =  Math.round(P2.toFixed(2));
+                P2Input.value = Math.round(P2.toFixed(2));
             }
         }
 
-        P2Input.addEventListener('input', () => {
-            lastChanged = 'P2';
-            updateValues();
-        });
+        P2Input.addEventListener('input', () => { lastChanged = 'P2'; updateValues(); });
+        T2Input.addEventListener('input', () => { lastChanged = 'T2'; updateValues(); });
+        [P1Input, T1Input, HvapInput].forEach((input) => input.addEventListener('input', updateValues));
 
-        T2Input.addEventListener('input', () => {
-            lastChanged = 'T2';
-            updateValues();
-        });
-
-        // Recalculate if initial values or Hvap change, keep lastChanged intact
-        [P1Input, T1Input, HvapInput].forEach((input) =>
-            input.addEventListener('input', () => {
-                updateValues();
-            })
-        );
-
-        // Initialize with default values
         lastChanged = 'P2';
         updateValues();
+
+
+        // Including navbar
+        fetch('navbar.html')
+        .then(response => response.text())
+        .then(data => {
+        document.getElementById('navbar-placeholder').innerHTML = data;
+      })
+      .catch(err => console.error('Error loading navbar:', err));
     </script>
 </body>
 </html>
