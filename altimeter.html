@@ -2,95 +2,146 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Check My Altitude</title>
+  <title>Altimeter - Crozair Technicea</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- Bootstrap 5 -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
-      font-family: 'Inter', sans-serif;
-      background-color: #f4f6f8;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      background: linear-gradient(120deg, #1c1c1c, #2c3e50);
+      color: #f1f1f1;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
     }
 
-    /* Card container */
+    main {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding-top: 70px;
+    }
+
     .altitude-card {
-      max-width: 380px;
-      margin: 4rem auto;
-      padding: 2rem;
-      border-radius: 12px;
-      background-color: #ffffff;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-      text-align: center;
-      transition: transform 0.2s;
-    }
-    .altitude-card:hover {
-      transform: translateY(-3px);
-    }
-
-    /* Heading */
-    .altitude-card h3 {
-      font-weight: 600;
-      margin-bottom: 1.2rem;
-      color: #1f2937;
-    }
-
-    /* Altitude output */
-    #output {
-      font-size: 1.4rem;
-      color: #374151;
-      margin: 1rem 0;
-      min-height: 2rem;
-    }
-
-    /* Refresh button */
-    .btn-refresh {
-      margin-top: 1rem;
+      max-width: 500px;
       width: 100%;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      padding: 2rem;
+      text-align: center;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.35);
     }
 
-    /* Footer spacing */
+    .altitude-card h3 {
+      font-weight: bold;
+      margin-bottom: 1rem;
+      color: #fff;
+    }
+
+    table {
+      width: 100%;
+      margin-top: 1rem;
+      color: #ffd369;
+      font-weight: 500;
+    }
+
+    th, td {
+      padding: 0.6rem;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+    }
+
+    th {
+      text-align: center;
+      color: #00d2ff;
+    }
+
+    .btn-refresh {
+      border-radius: 8px;
+      background: linear-gradient(135deg, #00a8ff, #4cd137);
+      border: none;
+      font-weight: 500;
+      transition: 0.3s;
+      width: 100%;
+      margin-top: 1rem;
+    }
+    .btn-refresh:hover {
+      background: linear-gradient(135deg, #4cd137, #00a8ff);
+      box-shadow: 0 0 15px rgba(0,168,255,0.6);
+    }
+
     footer {
       margin-top: auto;
-      padding: 1rem 0;
-      text-align: center;
-      font-size: 0.9rem;
-      color: #6b7280;
     }
   </style>
 </head>
 <body>
 
-  <!-- Navbar Placeholder -->
-  <div id="navbar-placeholder"></div>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+    <div class="container">
+      <a class="navbar-brand fw-bold" href="index.html">Crozair Technicea</a>
+    </div>
+  </nav>
 
-  <!-- Altitude Card -->
-  <div class="altitude-card">
-    <h3>🌐 Check Your Altitude</h3>
-    <p id="output">Fetching your altitude...</p>
-    <button class="btn btn-primary btn-refresh" onclick="getAltitude()">Refresh Altitude</button>
-  </div>
+  <main>
+    <div class="altitude-card">
+      <h3>Altimeter & Vacuum ⛰️</h3>
+      <!-- <p>Current measurements:</p> -->
+      <table>
+        <tr>
+          <th>Parameter</th>
+          <th>Value</th>
+        </tr>
+        <tr>
+          <td>Elevation (m)</td>
+          <td id="elevation">Fetching...</td>
+        </tr>
+        <tr>
+          <td>Elevation (ft)</td>
+          <td id="elevationFeet">Fetching...</td>
+        </tr>
+        <tr>
+          <td>Vacuum (mbar)</td>
+          <td id="vacuum">Fetching...</td>
+        </tr>
+      </table>
+      <button class="btn btn-primary btn-refresh" onclick="getAltitude()">Refresh</button>
+    </div>
+  </main>
 
-  <footer>
-    &copy; 2025 Altitude Tools
+  <footer class="bg-dark text-white text-center py-3">
+    <p class="mb-0">© Crozair Technicea 2025</p>
   </footer>
 
-  <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
-    // Load navbar from external file
-    fetch('navbar.html')
-      .then(res => res.text())
-      .then(data => document.getElementById('navbar-placeholder').innerHTML = data)
-      .catch(err => console.error('Error loading navbar:', err));
+    // Function to calculate vacuum at given height (barometric formula)
+    function CalculateVacuumAtHeight(height) {
+      const P0 = 1013.2034778; // Sea-level pressure in mbar
+      const L = 0.0065;
+      const T0 = 288.15;
+      const g = 9.80665;
+      const M = 0.0289644;
+      const R = 8.31447;
 
-    // Function to get altitude
+      const exponent = (g * M) / (R * L);
+      const base = 1 - (L * height) / T0;
+      const pressureAtHeight = P0 * Math.pow(base, exponent);
+      const vacuum = P0 - pressureAtHeight;
+      return vacuum.toFixed(2); // rounded to 2 decimals
+    }
+
     function getAltitude() {
-      const output = document.getElementById("output");
-      output.textContent = "Fetching your altitude...";
+      const el = document.getElementById("elevation");
+      const elFeet = document.getElementById("elevationFeet");
+      const vacuumEl = document.getElementById("vacuum");
+
+      el.textContent = "Fetching...";
+      elFeet.textContent = "Fetching...";
+      vacuumEl.textContent = "Fetching...";
 
       navigator.geolocation.getCurrentPosition(position => {
         const lat = position.coords.latitude;
@@ -100,16 +151,19 @@
           .then(res => res.json())
           .then(data => {
             const elevation = data.results[0].elevation;
-            output.textContent = `Your altitude is ${elevation} meters.`;
+            el.textContent = `${elevation} m`;
+            elFeet.textContent = `${(elevation * 3.28084).toFixed(2)} ft`;
+            vacuumEl.textContent = `${CalculateVacuumAtHeight(elevation)} mbar`;
           })
-          .catch(err => {
-            console.error("Error fetching elevation:", err);
-            output.textContent = "Could not fetch elevation.";
+          .catch(() => {
+            el.textContent = "Error";
+            elFeet.textContent = "Error";
+            vacuumEl.textContent = "Error";
           });
-
-      }, error => {
-        console.error("Error getting location:", error);
-        output.textContent = "Could not get your location.";
+      }, () => {
+        el.textContent = "Location not found";
+        elFeet.textContent = "Location not found";
+        vacuumEl.textContent = "Location not found";
       });
     }
 
